@@ -1,0 +1,30 @@
+services:
+  base_pg:
+    image: postgres:15.1
+    container_name: base_pg
+    restart: always
+    environment:
+      POSTGRES_DB: pgbasedb
+      POSTGRES_USER: root
+      POSTGRES_PASSWORD: postgres
+    volumes:
+      - ./src/infrastructure/database/init.sql:/docker-entrypoint-initdb.d/init.sql
+
+    ports:
+      - 5432:5432
+
+  base_app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: nest-docker-postgres
+    environment:
+      - NODE_ENV=${NODE_ENV}
+      - APP_PORT=${APP_PORT}
+    ports:
+      - "${APP_PORT}:3000"
+    depends_on:
+      - base_pg
+    volumes:
+      - ./src:/app/src
+      - ./.env:/app/.env
